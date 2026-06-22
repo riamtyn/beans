@@ -210,6 +210,17 @@ function disableButton(buttonId, seconds) {
         document.getElementById(buttonId).disabled = false;
     }, seconds * 1000);
 }
+
+//Function to disable buttons w/o a timer, such as when you dont have enough resources
+function toggleDisableButton(buttonId) {
+    if (document.getElementById(buttonId).disabled = true) {
+        document.getElementById(buttonId).disabled = false;
+    }
+    else {
+        document.getElementById(buttonId).disabled = true;
+    }
+}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////TICK///////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,10 +261,10 @@ function updatePbTimerFill(pbId, seconds) {
         document.getElementById(pbId).style.width = progress + '%';
         if (progress == 100) {
             clearInterval(progressInterval);
+            document.getElementById(pbId).style.width = 0 + '%';
         }
     }, seconds * 10);
 }
-// TODO: make pbtimer lines dissapear once completed- clearinterval(progressInterval) attempts this unsuccessfully?
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////MAIN TAB//////////////////////////////////////////////
