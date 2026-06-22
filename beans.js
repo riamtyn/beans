@@ -210,19 +210,21 @@ function disableButton(buttonId, seconds) {
         document.getElementById(buttonId).disabled = false;
     }, seconds * 1000);
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////TICK///////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Master Clock
 var x = 1;
-var masterClock = setInterval(tick, 100);
+var masterClock = setInterval(tick, 10);
 
 //Tick function
 function tick() {
     document.getElementById('masterClock').innerHTML = "Seconds since starting: " + x.toFixed(2);
-    x += .1;
+    x += .01;
 
+
+        // why is this in the tick function -riamtyn
     if (plants > 1 && hireVillagerSon.visible == false) {
         villageTab.appendChild(hireVillagerSon);
         hireVillagerSon.visible = true;
@@ -251,6 +253,7 @@ function updatePbTimerFill(pbId, seconds) {
         }
     }, seconds * 10);
 }
+// TODO: make pbtimer lines dissapear once completed- clearinterval(progressInterval) attempts this unsuccessfully?
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////MAIN TAB//////////////////////////////////////////////
