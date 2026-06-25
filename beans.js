@@ -283,6 +283,9 @@ function updateBeans() {
             beans = beans + beansMultiBase * beansMulti;
             document.getElementById('beans').innerHTML = "Beans: " + beans + "/" + beansMax;
             updatePbFill(beans, beansMax, 'pbBeansFill');
+            //if (document.getElementById('plantBeans').disabled = true) {
+            //    toggleDisableButton('plantBeans')
+            //}
 
             //Display updates
             if (beans > 2 & searchForBeans.visible == false) {
@@ -316,6 +319,9 @@ function updateSprouts() {
                 sprouts++;
                 updatePbFill(sprouts, sproutsMax, 'pbSproutsFill');
                 document.getElementById('sprouts').innerHTML = "Sprouts: " + sprouts + "/" + sproutsMax;
+                //if (beans < 1 && document.getElementById('plantBeans').disabled == true) {
+                //toggleDisableButton('plantBeans')
+                //}
 
                 //Display updates 
                 if (sprouts > 1 && plantBeans.visible == false) {
