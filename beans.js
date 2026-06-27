@@ -8,7 +8,7 @@ var beansMax = 20; //Max in resources
 var beansPS = 0; //Beans per second gain
 var beansTime = 1; //Seconds after to finish after button press
 var beansWorkers = 0; //Number of workers
-var beansMultiBase = 1; //To use for multiplying buffs
+// var beansMultiBase  // see tick function !
 var beansMulti = 1; //Multiplier for auto
 
 //Sprouts
@@ -19,6 +19,7 @@ var sproutsTime = 1;
 var sproutsWorkers = 0;
 var sproutsMultiBase = 1;
 var sproutsMulti = 1;
+var sproutsActive = false;
 
 //Water
 var water = 0;
@@ -28,6 +29,7 @@ var waterTime = 1;
 var waterWorkers = 0;
 var waterMultiBase = 1;
 var waterMulti = 1;
+var waterActive = false;
 
 //Plants
 var plants = 0;
@@ -37,11 +39,13 @@ var plantsTime = 1;
 var plantsWorkers = 0;
 var plantsMultiBase = 1;
 var plantsMulti = 1;
+var plantsActive = false;
 
 //Harvest
 var harvestBeanCount = 5; //Number of beans harvested per plant harvested
 var harvestTime = 1;
 var harvestWorkers = 0;
+var harvestActive = false;
 
 //Buffs and Upgrades
 var fannyPack1 = 5; // +5 beansMax base
@@ -142,7 +146,7 @@ function showTabsContent(b) {
 //Search for Beans Button
 var searchForBeans = document.createElement('button');
 searchForBeans.id = 'searchForBeans';
-searchForBeans.innerHTML = 'Search for beans';
+searchForBeans.innerHTML = 'Search for beans (+1 to 4 bean)';
 searchForBeans.visible = false;
 var mainTab = document.getElementsByClassName('mainTab')[0];
 mainTab.appendChild(searchForBeans);
@@ -150,25 +154,25 @@ mainTab.appendChild(searchForBeans);
 //Plant Beans Button
 var plantBeans = document.createElement('button');
 plantBeans.id = 'plantBeans';
-plantBeans.innerHTML = 'Plant beans';
+plantBeans.innerHTML = 'Plant beans (-1 bean, +1 sprout)';
 plantBeans.visible = false;
 
 //Gather Water Button
 var gatherWater = document.createElement('button');
 gatherWater.id = 'gatherWater';
-gatherWater.innerHTML = 'Gather water';
+gatherWater.innerHTML = 'Gather water (+1 fl oz water)';
 gatherWater.visible = false;
 
 //Water Sprouts Button
 var waterSprouts = document.createElement('button');
 waterSprouts.id = 'waterSprouts';
-waterSprouts.innerHTML = 'Water sprouts';
+waterSprouts.innerHTML = 'Water sprouts (-1 sprout, -1 fl oz water, +1 plant)';
 waterSprouts.visible = false;
 
 //Harvest Plants Button
 var harvest = document.createElement('button');
 harvest.id = 'harvest';
-harvest.innerHTML = 'Harvest plants';
+harvest.innerHTML = 'Harvest plants (-1 plant, +5 beans)';
 harvest.visible = false;
 
 //Hire Villager's Son Button
@@ -176,6 +180,7 @@ var hireVillagerSon = document.createElement('button');
 hireVillagerSon.id = 'hireVillagerSon';
 hireVillagerSon.innerHTML = 'Hire Villager\'s Son';
 hireVillagerSon.visible = false;
+
 var villageTab = document.getElementsByClassName('villageTab')[0];
 villageTab.appendChild(hireVillagerSon);
 
@@ -211,16 +216,6 @@ function disableButton(buttonId, seconds) {
     }, seconds * 1000);
 }
 
-//Function to disable buttons w/o a timer, such as when you dont have enough resources
-function toggleDisableButton(buttonId) {
-    if (document.getElementById(buttonId).disabled = true) {
-        document.getElementById(buttonId).disabled = false;
-    }
-    else {
-        document.getElementById(buttonId).disabled = true;
-    }
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////TICK///////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,13 +229,20 @@ function tick() {
     document.getElementById('masterClock').innerHTML = "Seconds since starting: " + x.toFixed(2);
     x += .01;
 
-
-        // why is this in the tick function -riamtyn
     if (plants > 1 && hireVillagerSon.visible == false) {
         villageTab.appendChild(hireVillagerSon);
         hireVillagerSon.visible = true;
         document.getElementById('villageTab').style.visibility = 'visible';
     }
+    // always check if requirements are met, and if the button is disabled, re-enable it
+    // by enabling it this way, it may cause issues with the button disabling with the disable button for x time function
+    if (beans > 0 && document.getElementById('plantBeans').disabled == true && sproutsActive == false) {
+        document.getElementById('plantBeans').disabled = false;
+    }
+
+    // constantly randomise beansMultiBase (1-4)
+    globalThis(beansMultiBase)
+    var beansMultiBase = Math.floor(Math.random()*10/2);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////PROGRESS BARS////////////////////////////////////////////
@@ -283,9 +285,6 @@ function updateBeans() {
             beans = beans + beansMultiBase * beansMulti;
             document.getElementById('beans').innerHTML = "Beans: " + beans + "/" + beansMax;
             updatePbFill(beans, beansMax, 'pbBeansFill');
-            //if (document.getElementById('plantBeans').disabled = true) {
-            //    toggleDisableButton('plantBeans')
-            //}
 
             //Display updates
             if (beans > 2 & searchForBeans.visible == false) {
@@ -308,6 +307,7 @@ function updateSprouts() {
             //Disable button and run timer pb
             disableButton('plantBeans', sproutsTime);
             updatePbTimerFill('pbSproutsTimerFill', sproutsTime);
+            sproutsActive = true;
 
             //Remove bean immediately
             beans--;
@@ -319,9 +319,13 @@ function updateSprouts() {
                 sprouts++;
                 updatePbFill(sprouts, sproutsMax, 'pbSproutsFill');
                 document.getElementById('sprouts').innerHTML = "Sprouts: " + sprouts + "/" + sproutsMax;
-                //if (beans < 1 && document.getElementById('plantBeans').disabled == true) {
-                //toggleDisableButton('plantBeans')
-                //}
+
+                //disable button if you dont have enough beans AFTER TIMER
+                if (beans < 1 && document.getElementById('plantBeans').disabled == false) {
+                    document.getElementById('plantBeans').disabled = true;
+                }
+
+                beansActive = false;
 
                 //Display updates 
                 if (sprouts > 1 && plantBeans.visible == false) {
