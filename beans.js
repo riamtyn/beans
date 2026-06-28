@@ -2,20 +2,23 @@
 ////////////////////////////////////////////VARIABLES////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
+var DEBUG = true;
+
 //Beans
 var beans = 0; //Count in resources
 var beansMax = 20; //Max in resources
 var beansPS = 0; //Beans per second gain
-var beansTime = 1; //Seconds after to finish after button press
+var beansTime = 5; //Seconds after to finish after button press
 var beansWorkers = 0; //Number of workers
-// var beansMultiBase  // see tick function !
+var beansMultiBase = 1;  // see search for beans function for full calculation!
 var beansMulti = 1; //Multiplier for auto
+var beansActive = false;
 
 //Sprouts
 var sprouts = 0;
 var sproutsMax = 15;
 var sproutsPS = 0;
-var sproutsTime = 1;
+var sproutsTime = 10; //10s base
 var sproutsWorkers = 0;
 var sproutsMultiBase = 1;
 var sproutsMulti = 1;
@@ -25,7 +28,7 @@ var sproutsActive = false;
 var water = 0;
 var waterMax = 8;
 var waterPS = 0;
-var waterTime = 1;
+var waterTime = 15; //15 sec base
 var waterWorkers = 0;
 var waterMultiBase = 1;
 var waterMulti = 1;
@@ -35,15 +38,15 @@ var waterActive = false;
 var plants = 0;
 var plantsMax = sproutsMax;
 var plantsPS = 0;
-var plantsTime = 1;
+var plantsTime = 45; //45 sec base
 var plantsWorkers = 0;
 var plantsMultiBase = 1;
 var plantsMulti = 1;
 var plantsActive = false;
 
 //Harvest
-var harvestBeanCount = 5; //Number of beans harvested per plant harvested
-var harvestTime = 1;
+var harvestBeanCount = 15; //Number of beans harvested per plant harvested
+var harvestTime = 120; //2 min base
 var harvestWorkers = 0;
 var harvestActive = false;
 
@@ -53,6 +56,17 @@ var fannyPack1 = 5; // +5 beansMax base
 //Tabs
 var tab;
 var tabContent;
+var debugMode;
+document.getElementById('debugMode').innerHTML = 'DEBUG : NO'
+//fast if debug
+if (DEBUG) {
+    beansTime = 0.1;
+    sproutsTime = 0.1;
+    waterTime = 0.1;
+    plantsTime = 0.1;
+    harvestTime = 0.1;
+    document.getElementById('debugMode').innerHTML = 'DEBUG : YES'
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////THINGS TO START HIDDEN//////////////////////////////////////////
@@ -146,7 +160,7 @@ function showTabsContent(b) {
 //Search for Beans Button
 var searchForBeans = document.createElement('button');
 searchForBeans.id = 'searchForBeans';
-searchForBeans.innerHTML = 'Search for beans (+1 to 4 bean)';
+searchForBeans.innerHTML = 'Search for beans (+1 to 5 bean)';
 searchForBeans.visible = false;
 var mainTab = document.getElementsByClassName('mainTab')[0];
 mainTab.appendChild(searchForBeans);
@@ -172,7 +186,7 @@ waterSprouts.visible = false;
 //Harvest Plants Button
 var harvest = document.createElement('button');
 harvest.id = 'harvest';
-harvest.innerHTML = 'Harvest plants (-1 plant, +5 beans)';
+harvest.innerHTML = 'Harvest plants (-1 plant, +15 beans)';
 harvest.visible = false;
 
 //Hire Villager's Son Button
@@ -234,15 +248,25 @@ function tick() {
         hireVillagerSon.visible = true;
         document.getElementById('villageTab').style.visibility = 'visible';
     }
+
     // always check if requirements are met, and if the button is disabled, re-enable it
-    // by enabling it this way, it may cause issues with the button disabling with the disable button for x time function
-    if (beans > 0 && document.getElementById('plantBeans').disabled == true && sproutsActive == false) {
+    if (beans < beansMax && beansActive == false && document.getElementById('searchForBeans').disabled == true) {
+        document.getElementById('searchForBeans').disabled = false;
+    }
+    if (beans > 0 && sproutsActive == false && document.getElementById('plantBeans').disabled == true  || 
+    sprouts <= sproutsMax && document.getElementById('plantBeans').disabled == true && sproutsActive == false) {
         document.getElementById('plantBeans').disabled = false;
     }
-
-    // constantly randomise beansMultiBase (1-4)
-    globalThis(beansMultiBase)
-    var beansMultiBase = Math.floor(Math.random()*10/2);
+    if (water < waterMax && waterActive == false && document.getElementById('gatherWater').disabled == true) {
+        document.getElementById('gatherWater').disabled = false;
+    }
+    if (water > 0 && sprouts > 0 && plants < plantsMax && plantsActive == false && document.getElementById('waterSprouts').disabled == true) {  
+        document.getElementById('waterSprouts').disabled = false;
+    }
+    if (plants > 0 && (beans + harvestBeanCount) <= beansMax && harvestActive == false && document.getElementById('harvest').disabled == true) {
+        document.getElementById('harvest').disabled = false;
+    }
+    
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////PROGRESS BARS////////////////////////////////////////////
@@ -279,12 +303,25 @@ function updateBeans() {
         //Disable button and run timer pb
         disableButton('searchForBeans', beansTime);
         updatePbTimerFill('pbBeansTimerFill', beansTime);
+        beansActive = true;
 
         //Add bean AFTER TIMER
         setTimeout(function () {
-            beans = beans + beansMultiBase * beansMulti;
+            foo = beans + Math.floor(Math.random()*10/2) + beansMultiBase * beansMulti; // beans calculation | ex. 0 = 0 + 1 + 1 * 1 = 2, or 0 = 0 + 0 + 1 * 1 = 1
+            if (foo > beansMax) {
+                foo2 = foo - beansMax;
+                foo = foo - foo2;
+                // if beans is above beansMax, limit it
+            }
+            beans = foo;
+
             document.getElementById('beans').innerHTML = "Beans: " + beans + "/" + beansMax;
             updatePbFill(beans, beansMax, 'pbBeansFill');
+
+            if (beans >= beansMax && document.getElementById('searchForBeans').disabled == false) {
+                document.getElementById('searchForBeans').disabled = true;
+            }
+            beansActive = false;
 
             //Display updates
             if (beans > 2 & searchForBeans.visible == false) {
@@ -320,12 +357,12 @@ function updateSprouts() {
                 updatePbFill(sprouts, sproutsMax, 'pbSproutsFill');
                 document.getElementById('sprouts').innerHTML = "Sprouts: " + sprouts + "/" + sproutsMax;
 
-                //disable button if you dont have enough beans AFTER TIMER
-                if (beans < 1 && document.getElementById('plantBeans').disabled == false) {
+                //disable button if you dont have enough beans OR if sprouts are full AFTER TIMER
+                if (beans < 1 && document.getElementById('plantBeans').disabled == false || sprouts >= sproutsMax) {
                     document.getElementById('plantBeans').disabled = true;
                 }
 
-                beansActive = false;
+                sproutsActive = false;
 
                 //Display updates 
                 if (sprouts > 1 && plantBeans.visible == false) {
@@ -348,12 +385,19 @@ function updateWater() {
         //Disable button and run timer pb
         disableButton('gatherWater', waterTime);
         updatePbTimerFill('pbWaterTimerFill', waterTime);
+        waterActive = true;
 
         //Add water AFTER TIMER
         setTimeout(function () {
             water++;
+
+            if (water >= waterMax && document.getElementById('gatherWater').disabled == false) {
+                document.getElementById('gatherWater').disabled = true;
+            }
             updatePbFill(water, waterMax, 'pbWaterFill');
             document.getElementById('water').innerHTML = "Water: " + water + "/" + waterMax + " fl oz";
+
+            waterActive = false;
 
             //Display Updates
             if (sprouts > 1 && water > 1 && waterSprouts.visible == false) {
@@ -376,6 +420,7 @@ function updatewaterSprouts() {
         //Disable button and run timer pb
         disableButton('waterSprouts', plantsTime);
         updatePbTimerFill('pbPlantsTimerFill', plantsTime);
+        plantsActive = true;
 
         //Remove water and sprouts IMMEDIATELY
         water--;
@@ -384,18 +429,25 @@ function updatewaterSprouts() {
         updatePbFill(sprouts, sproutsMax, 'pbSproutsFill');
         document.getElementById('water').innerHTML = "Water: " + water + "/" + waterMax + " fl oz";
         document.getElementById('sprouts').innerHTML = "Sprouts: " + sprouts + "/" + sproutsMax;
+        
 
         //Add plants AFTER TIMER
         setTimeout(function () {
             plants++;
+            
+            if ((water <= 0 || sprouts <= 0 || plants >= plantsMax) && document.getElementById('waterSprouts').disabled == false) {
+                document.getElementById('waterSprouts').disabled = true;
+            }  
+
             updatePbFill(plants, sproutsMax, 'pbPlantsFill');
             document.getElementById('plants').innerHTML = "Plants: " + plants + "/" + plantsMax;
+            plantsActive = false;
 
             //Display updates
             mainTab.appendChild(harvest);
             harvest.visible = true;
             pbHarvestTimer.style.display = 'block';
-            document.getElementById('harvest').innerHTML = "Harvesting..."
+            document.getElementById('harvest').innerHTML = "Harvest"
             if (plants > 1 && hireVillagerSon.visible == false) {
                 villageTab.appendChild(hireVillagerSon);
                 hireVillagerSon.visible = true;
@@ -407,11 +459,13 @@ function updatewaterSprouts() {
 
 //Function to remove 1 plant and add 5 beans
 function updateHarvestPlants() {
-    if (plants > 0 && beans <= (beansMax - harvestBeanCount)) {
+    if (plants > 0 && (beans + harvestBeanCount) <= beansMax) {
 
         //Disable button and run timer pb
         disableButton('harvest', harvestTime);
         updatePbTimerFill('pbHarvestTimerFill', harvestTime);
+        document.getElementById('harvest').innerHTML = "Harvesting..."
+        harvestActive = true;
 
         //Remove plant IMMEDIATLEY
         plants--;
@@ -420,28 +474,16 @@ function updateHarvestPlants() {
 
         //Add beans and remove plants AFTER TIMER
         setTimeout(function () {
+
+            if (plants <= 0 || (beans + harvestBeanCount) > beansMax) {
+                document.getElementById('harvest').disabled = true;
+            }
+            
             beans = beans + harvestBeanCount;
+            harvestActive = false;
             updatePbFill(beans, beansMax, 'pbBeansFill');
             document.getElementById('beans').innerHTML = "Beans: " + beans + "/" + beansMax;
-        }, harvestTime * 1000)
-    }
-
-    if (plants > 0 && beans > (beansMax - harvestBeanCount)) {
-
-        //Disable button and run timer pb
-        disableButton('harvest', harvestTime);
-        updatePbTimerFill('pbHarvestTimerFill', harvestTime);
-
-        //Remove plant IMMEDIATLEY
-        plants--;
-        updatePbFill(plants, sproutsMax, 'pbPlantsFill');
-        document.getElementById('plants').innerHTML = "Plants: " + plants + "/" + plantsMax;
-
-        //Add beans and remove plants AFTER TIMER
-        setTimeout(function () {
-            beans = beans + (beansMax - beans);
-            updatePbFill(beans, beansMax, 'pbBeansFill');
-            document.getElementById('beans').innerHTML = "Beans: " + beans + "/" + beansMax;
+            document.getElementById('harvest').innerHTML = "Harvest"
         }, harvestTime * 1000)
     }
 }
