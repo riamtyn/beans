@@ -50,6 +50,36 @@ var fannyPack1 = 5; // +5 beansMax base
 var tab;
 var tabContent;
 
+/////////////////////////////////////resources per second math (true) /////////////////////////////////////////
+let lastValueBeans = beans;
+const fs = require('fs');
+
+const timer = setInterval(() => {
+    const nowValueBeans = beans;
+    const beansPerSecond = nowValueBeans - lastValueBeans;
+    lastValueBeans = nowValueBeans;
+
+}, 1000);
+
+
+
+
+
+
+
+
+// tbh man i dont know what im doing
+// why is it so hard to just get a variable from javascript to python 
+// it needs to be browser-side
+
+
+
+
+
+
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////THINGS TO START HIDDEN//////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
